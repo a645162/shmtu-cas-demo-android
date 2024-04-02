@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="Logo"
+                android:src="@mipmap/ic_launcher" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="验证码Demo"
+                android:textColor="#000000"
+                android:textSize="20sp" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/buttonGetFromNet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="从网络获取验证码" />
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonSelectImageFromLocal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="本地相册选图" />
+
+            <Button
+                android:id="@+id/buttonInner1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="内置图片1" />
+
+            <Button
+                android:id="@+id/buttonInner2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="内置图片2" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonDetect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CPU识别" />
+
+            <Button
+                android:id="@+id/buttonDetectGPU"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GPU识别" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Server Host:" />
+
+            <EditText
+                android:id="@+id/editText_Ip"
+                android:layout_width="match_parent"
+                android:layout_height="48sp"
+                android:text="nas.khm123.site" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Server Port:" />
+
+            <EditText
+                android:id="@+id/editText_Port"
+                android:layout_width="match_parent"
+                android:layout_height="48sp"
+                android:text="21601" />
+
+            <Button
+                android:id="@+id/button_ocr_server"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="OCR via Remote Server" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="24dp" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="识别结果:"
+            android:textColor="@android:color/holo_red_light"
+            android:textSize="48sp" />
+
+        <TextView
+            android:id="@+id/infoResult"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text=""
+            android:textSize="48sp" />
+
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Author:Haomin Kong"
+            android:textColor="@android:color/black"
+            android:textSize="32sp" />
+    </LinearLayout>
+</ScrollView>
