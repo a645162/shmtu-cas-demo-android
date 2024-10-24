@@ -94,7 +94,7 @@
                 android:id="@+id/editText_Ip"
                 android:layout_width="match_parent"
                 android:layout_height="48sp"
-                android:text="nas.khm123.site" />
+                android:text="" />
 
             <TextView
                 android:layout_width="wrap_content"
