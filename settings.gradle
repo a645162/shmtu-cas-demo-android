@@ -31,6 +31,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SHMTU_CAS_OCR_DEMO"
+rootProject.name = "shmtu-cas-ocr-demo-android"
 include ':app'
 include ':shmtu_ocr'
