@@ -4,6 +4,12 @@
 
 本项目不再维护！
 
+## 截图
+
+![运行界面](./Docs/assets/activity_main.jpg)
+
+![应用信息](./Docs/assets/app_info.jpg)
+
 ## 模型权重
 
 请前往
