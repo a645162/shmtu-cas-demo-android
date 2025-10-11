@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.10)
 
 set(LIB_3RD_PARTY_DIR ${CMAKE_SOURCE_DIR}/3rdparty)
 
-set(OpenCV_DIR ${LIB_3RD_PARTY_DIR}/opencv-mobile-4.9.0-android/sdk/native/jni)
-set(ncnn_DIR ${LIB_3RD_PARTY_DIR}/ncnn-20240102-android-vulkan/${ANDROID_ABI}/lib/cmake/ncnn)
+set(OpenCV_DIR ${LIB_3RD_PARTY_DIR}/opencv-mobile-4.12.0-android/sdk/native/jni)
+set(ncnn_DIR ${LIB_3RD_PARTY_DIR}/ncnn-20250503-android-vulkan/${ANDROID_ABI}/lib/cmake/ncnn)
 
 find_package(OpenCV REQUIRED)
 find_package(ncnn REQUIRED)

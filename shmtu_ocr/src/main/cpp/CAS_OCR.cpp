@@ -278,6 +278,10 @@ namespace CAS_OCR
         }
         // ex.set_vulkan_compute() is no-op, please set net.opt.use_vulkan_compute=true/false before net.load_param()
         // If you want to disable vulkan for only some layer, see https://github.com/Tencent/ncnn/wiki/layer-feat-mask
+        // https://github.com/Tencent/ncnn/releases/tag/20250916
+        // 删除已废弃的 Extractor::set_num_threads/set_vulkan_compute api
+        // https://github.com/Tencent/ncnn/releases/download/20250503/ncnn-20250503-android-vulkan.zip
+        // Keep set_vulkan_compute for Android to dy
 #endif
 
         ex.input("input", in);
