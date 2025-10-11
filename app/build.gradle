@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
+    // Unused from AGP 10.0
+    // id 'org.jetbrains.kotlin.android'
 }
 
 //def jdkVersion = JavaVersion.VERSION_21
@@ -27,7 +28,7 @@ android {
         }
     }
     namespace 'com.khm.shmtu.cas.ocr.demo'
-    compileSdk 36
+    compileSdk = 36
 
     defaultConfig {
         applicationId "com.khm.shmtu.cas.ocr.demo"
@@ -35,12 +36,13 @@ android {
         minSdk 21
         targetSdk 36
 
-        versionCode 114
-        versionName "1.1.4"
+        versionCode 115
+        versionName "1.1.5"
     }
 
     buildTypes {
         release {
+            // debuggable true
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
