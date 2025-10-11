@@ -3,6 +3,24 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
+//def jdkVersion = JavaVersion.VERSION_21
+def jdkVersion = rootProject.ext.jdkVersion
+
+switch (jdkVersion) {
+    case JavaVersion.VERSION_21:
+        println("Using JDK 21 (Recommended ^_^)")
+        break
+    case JavaVersion.VERSION_17:
+        println("Using JDK 17 (Recommended to use JDK 21 instead)")
+        break
+    case JavaVersion.VERSION_11:
+        println("Using JDK 11 (Recommended to use JDK 21 instead)")
+        break
+    default:
+        println("Unknown JDK version: $jdkVersion")
+        break
+}
+
 android {
     signingConfigs {
         release {
@@ -28,20 +46,17 @@ android {
         }
     }
 
-//    compileOptions {
-//        sourceCompatibility JavaVersion.VERSION_1_8
-//        targetCompatibility JavaVersion.VERSION_1_8
-//    }
-//    kotlinOptions {
-//        jvmTarget = '1.8'
-//    }
-
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_21
-        targetCompatibility JavaVersion.VERSION_21
+        sourceCompatibility jdkVersion
+        targetCompatibility jdkVersion
     }
 
-    kotlinOptions { jvmTarget = 21 }
+    kotlin{
+        compileOptions{
+            sourceCompatibility jdkVersion
+            targetCompatibility jdkVersion
+        }
+    }
 
     dependenciesInfo {
         includeInApk true

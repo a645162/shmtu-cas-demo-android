@@ -1,6 +1,6 @@
-project(shmtu_cas_ncnn)
-
 cmake_minimum_required(VERSION 3.10)
+
+project(shmtu_cas_ncnn)
 
 set(LIB_3RD_PARTY_DIR ${CMAKE_SOURCE_DIR}/3rdparty)
 

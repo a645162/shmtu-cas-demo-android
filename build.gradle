@@ -5,3 +5,7 @@ plugins {
 
     id 'com.android.library' version '9.0.0-alpha10' apply false
 }
+
+ext {
+    jdkVersion = JavaVersion.VERSION_21
+}
