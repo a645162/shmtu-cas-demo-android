@@ -3,13 +3,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    android:background="#FAFAFA"
     android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="12dp">
+
+        <!-- 模型控制区 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="模型控制"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginBottom="4dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -22,21 +32,61 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
+                android:backgroundTint="@color/primary"
+                android:textColor="@android:color/white"
                 android:text="加载模型" />
+
+            <Button
+                android:id="@+id/button_release_model"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="@color/warning"
+                android:textColor="@android:color/white"
+                android:text="释放模型" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/button_check_status"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="4dp"
+                android:backgroundTint="@color/success"
+                android:textColor="@android:color/white"
                 android:text="查询状态" />
+
+            <TextView
+                android:id="@+id/tv_model_status"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:gravity="center_vertical"
+                android:text="未加载"
+                android:textSize="12sp"
+                android:textColor="#666666" />
         </LinearLayout>
+
+        <!-- 图片获取区 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="图片获取"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <Button
@@ -44,6 +94,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:backgroundTint="@color/primary_dark"
+                android:textColor="@android:color/white"
                 android:text="网络获取" />
 
             <Button
@@ -51,13 +104,16 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:backgroundTint="@color/accent"
+                android:textColor="@android:color/white"
                 android:text="本地选图" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal">
 
             <Button
@@ -65,6 +121,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginEnd="4dp"
                 android:text="内置图片1" />
 
             <Button
@@ -72,66 +129,92 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginStart="4dp"
                 android:text="内置图片2" />
         </LinearLayout>
 
+        <!-- 识别区 -->
         <Button
             android:id="@+id/buttonDetect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="@color/success"
+            android:textColor="@android:color/white"
             android:text="识别" />
+
+        <!-- 远程OCR区 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="远程OCR"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Server Host:" />
+            android:orientation="horizontal">
 
             <EditText
                 android:id="@+id/editText_Ip"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Server Port:" />
+                android:layout_weight="2"
+                android:hint="Server IP"
+                android:textSize="12sp"
+                android:inputType="text" />
 
             <EditText
                 android:id="@+id/editText_Port"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="21601" />
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:hint="Port"
+                android:textSize="12sp"
+                android:text="21601"
+                android:inputType="number" />
 
             <Button
                 android:id="@+id/button_ocr_server"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="OCR via Remote Server" />
+                android:layout_marginStart="8dp"
+                android:backgroundTint="@color/danger"
+                android:textColor="@android:color/white"
+                android:text="远程识别" />
         </LinearLayout>
+
+        <!-- 图片预览 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="图片预览"
+            android:textSize="14sp"
+            android:textColor="#666666"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp" />
 
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="8dp"
-            android:padding="8dp"
+            android:layout_height="180dp"
+            android:background="#E0E0E0"
+            android:padding="4dp"
             android:scaleType="fitCenter" />
 
+        <!-- 结果区 -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
             android:gravity="center"
-            android:text="识别结果:"
-            android:textColor="@android:color/holo_red_light"
-            android:textSize="16sp" />
+            android:text="识别结果"
+            android:textSize="14sp"
+            android:textColor="#666666" />
 
         <TextView
             android:id="@+id/infoResult"
@@ -139,14 +222,17 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:text=""
-            android:textSize="14sp" />
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="#333333" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:gravity="center"
-            android:text="Author:Haomin Kong"
-            android:textColor="@android:color/black"
-            android:textSize="12sp" />
+            android:text="Author: Haomin Kong"
+            android:textColor="#999999"
+            android:textSize="11sp" />
     </LinearLayout>
 </ScrollView>

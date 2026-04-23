@@ -4,26 +4,25 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.Window
-import androidx.appcompat.app.AlertDialog
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.khm.shmtu.cas.captcha.Captcha
 import com.khm.shmtu.cas.captcha.CaptchaAndroid
 import com.khm.shmtu.cas.ocr.SHMTU_NCNN
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
-
 
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val shmtuNcnn = SHMTU_NCNN()
@@ -32,6 +31,24 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private var innerBitmap: Bitmap? = null
 
     private var infoResult: TextView? = null
+    private var tvModelStatus: TextView? = null
+
+    private val imagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            try {
+                val selectedImage = result.data?.data
+                val bitmap = ImageUtils.decodeUri(this, selectedImage)
+                val rgba = bitmap!!.copy(Bitmap.Config.ARGB_8888, true)
+                innerBitmap = Bitmap.createScaledBitmap(rgba, 400, 140, false)
+                rgba.recycle()
+                imageView?.setImageBitmap(bitmap)
+            } catch (e: FileNotFoundException) {
+                Log.e("MainActivity", "FileNotFoundException")
+            }
+        }
+    }
 
     @SuppressLint("SourceLockedOrientationActivity")
     public override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,91 +59,89 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             title = "验证码识别"
         }
 
-        // 设置屏幕方向为竖屏模式
-        requestedOrientation =
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         initWidget()
     }
 
     private fun doOcrDemo() {
-        if (innerBitmap == null) return
-        val resultObj =
-            shmtuNcnn.predict_validate_code(innerBitmap)
-        if (resultObj == null) {
-            Toast.makeText(
-                this@MainActivity,
-                "detect failed!",
-                Toast.LENGTH_SHORT
-            )
+        if (innerBitmap == null) {
+            Toast.makeText(this, "请先选择图片!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val status = shmtuNcnn.getModelStatus()
+        if (status == SHMTU_NCNN.ModelStatus.NOT_LOADED) {
+            AlertDialog.Builder(this)
+                .setTitle("模型未加载")
+                .setMessage("请先加载模型后再进行识别")
+                .setPositiveButton("确定", null)
                 .show()
             return
         }
-        infoResult!!.text = resultObj[1] as String
+
+        val resultObj = shmtuNcnn.predict_validate_code(innerBitmap)
+        if (resultObj == null) {
+            Toast.makeText(this, "识别失败!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        infoResult?.text = resultObj[1] as String
     }
 
     private fun initWidget() {
+        tvModelStatus = findViewById<View>(R.id.tv_model_status) as TextView
         updateModelStatusText()
 
         infoResult = findViewById<View>(R.id.infoResult) as TextView
         imageView = findViewById<View>(R.id.imageView) as ImageView
 
-        val buttonGetFromNet = findViewById<View>(R.id.buttonGetFromNet) as Button
-        buttonGetFromNet.setOnClickListener {
+        findViewById<Button>(R.id.buttonGetFromNet).setOnClickListener {
             val imageURL = "https://cas.shmtu.edu.cn/cas/captcha"
             this.launch {
                 try {
                     val bitmap = ImageUtils.downloadImageFromURL(imageURL)
                     innerBitmap = bitmap
-                    imageView!!.setImageBitmap(bitmap)
+                    imageView?.setImageBitmap(bitmap)
                 } catch (e: Exception) {
-                    // 处理异常，例如显示错误消息
                     e.printStackTrace()
                 }
             }
         }
 
-        (findViewById<View>(R.id.buttonInner1) as Button).setOnClickListener {
-            val bitmap = ImageUtils.getBitmapFromAssets(
-                this@MainActivity,
-                "test1_20240102160004_server.png"
-            )
+        findViewById<Button>(R.id.buttonInner1).setOnClickListener {
+            val bitmap = ImageUtils.getBitmapFromAssets(this, "test1_20240102160004_server.png")
             innerBitmap = bitmap
-            imageView!!.setImageBitmap(bitmap)
+            imageView?.setImageBitmap(bitmap)
         }
-        (findViewById<View>(R.id.buttonInner2) as Button).setOnClickListener {
-            val bitmap = ImageUtils.getBitmapFromAssets(
-                this@MainActivity,
-                "test2_20240102160811_server.png"
-            )
+
+        findViewById<Button>(R.id.buttonInner2).setOnClickListener {
+            val bitmap = ImageUtils.getBitmapFromAssets(this, "test2_20240102160811_server.png")
             innerBitmap = bitmap
-            imageView!!.setImageBitmap(bitmap)
+            imageView?.setImageBitmap(bitmap)
         }
 
-        val buttonImage = findViewById<View>(R.id.buttonSelectImageFromLocal) as Button
-        buttonImage.setOnClickListener {
-            val i = Intent(Intent.ACTION_PICK)
-            i.setType("image/*")
-            startActivityForResult(i, REQUEST_CODE_SELECT_IMAGE)
+        findViewById<Button>(R.id.buttonSelectImageFromLocal).setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK).apply { type = "image/*" }
+            imagePickerLauncher.launch(intent)
         }
 
-        val buttonDetect = findViewById<View>(R.id.buttonDetect) as Button
-        buttonDetect.setOnClickListener { doOcrDemo() }
+        findViewById<Button>(R.id.buttonDetect).setOnClickListener { doOcrDemo() }
 
-        val buttonOcrViaRemoteServer = findViewById<Button>(R.id.button_ocr_server)
-        buttonOcrViaRemoteServer.setOnClickListener {
-            ocrViaRemoteServer()
-        }
+        findViewById<Button>(R.id.button_ocr_server).setOnClickListener { ocrViaRemoteServer() }
 
-        val buttonLoadModel = findViewById<Button>(R.id.button_load_model)
-        buttonLoadModel.setOnClickListener {
-            showLoadModelDialog()
-        }
+        findViewById<Button>(R.id.button_load_model).setOnClickListener { showLoadModelDialog() }
 
-        val buttonCheckStatus = findViewById<Button>(R.id.button_check_status)
-        buttonCheckStatus.setOnClickListener {
+        findViewById<Button>(R.id.button_check_status).setOnClickListener {
             updateModelStatusText()
-            Toast.makeText(this, "Model Status: ${shmtuNcnn.getModelStatus()}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "状态: ${shmtuNcnn.getModelStatus()}", Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById<Button>(R.id.button_release_model).setOnClickListener {
+            if (shmtuNcnn.getModelStatus() == SHMTU_NCNN.ModelStatus.NOT_LOADED) {
+                Toast.makeText(this, "模型未加载!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            releaseModel()
         }
     }
 
@@ -156,8 +171,13 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private fun updateModelStatusText() {
         val status = shmtuNcnn.getModelStatus()
         val gpuSupport = shmtuNcnn.isVulkanSupported()
-        val gpuText = if (gpuSupport) "支持" else "不支持"
-        infoResult?.text = "状态: $status | GPU: $gpuText"
+        val statusText = when (status) {
+            SHMTU_NCNN.ModelStatus.NOT_LOADED -> "未加载"
+            SHMTU_NCNN.ModelStatus.LOADED_CPU -> "CPU模式"
+            SHMTU_NCNN.ModelStatus.LOADED_GPU -> "GPU模式"
+        }
+        tvModelStatus?.text = "$statusText | GPU:${if (gpuSupport) "支持" else "不支持"}"
+        infoResult?.text = ""
     }
 
     private fun loadModel(useGpu: Boolean) {
@@ -169,107 +189,47 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         if (!ret) {
             Toast.makeText(this, "模型加载失败!", Toast.LENGTH_SHORT).show()
         } else {
-            val deviceText = if (useGpu) "GPU" else "CPU"
-            Toast.makeText(this, "模型已加载到$deviceText", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "模型已加载到${if (useGpu) "GPU" else "CPU"}", Toast.LENGTH_SHORT).show()
         }
+        updateModelStatusText()
     }
 
     private fun releaseModel() {
         shmtuNcnn.releaseModel()
         updateModelStatusText()
-        Toast.makeText(this, "Model released", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "模型已释放", Toast.LENGTH_SHORT).show()
     }
 
     private fun ocrViaRemoteServer() {
         if (innerBitmap == null) {
-            Toast.makeText(
-                this@MainActivity,
-                "Please import an image first!",
-                Toast.LENGTH_SHORT
-            )
-                .show()
+            Toast.makeText(this, "请先选择图片!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val editTextIp = findViewById<EditText>(R.id.editText_Ip)
-        val editTextPort = findViewById<EditText>(R.id.editText_Port)
-
-        val ip =
-            editTextIp.text.trim().toString()
-        val port =
-            editTextPort.text.trim().toString()
+        val ip = findViewById<EditText>(R.id.editText_Ip).text.trim().toString()
+        val port = findViewById<EditText>(R.id.editText_Port).text.trim().toString()
 
         if (ip.isBlank()) {
-            Toast.makeText(
-                this@MainActivity,
-                "Invalid host!",
-                Toast.LENGTH_SHORT
-            )
-                .show()
+            Toast.makeText(this, "无效的服务器地址!", Toast.LENGTH_SHORT).show()
             return
         }
 
         if (!Captcha.validatePort(port)) {
-            Toast.makeText(
-                this@MainActivity,
-                "Invalid port number!",
-                Toast.LENGTH_SHORT
-            )
-                .show()
+            Toast.makeText(this, "无效的端口!", Toast.LENGTH_SHORT).show()
             return
         }
 
         Thread {
-            val imageData =
-                CaptchaAndroid.AndroidBitmapToByteArray(innerBitmap!!)
+            val imageData = CaptchaAndroid.AndroidBitmapToByteArray(innerBitmap!!)
+            val result = Captcha.ocrByRemoteTcpServerAutoRetry(ip, port.toInt(), imageData)
 
-            val result =
-                Captcha.ocrByRemoteTcpServerAutoRetry(
-                    ip,
-                    port.toInt(),
-                    imageData
-                )
-
-            if (result.isBlank()) {
-                runOnUiThread {
-                    Toast.makeText(
-                        this@MainActivity,
-                        "OCR via Remote Server failed!",
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
+            runOnUiThread {
+                if (result.isBlank()) {
+                    Toast.makeText(this, "远程OCR失败!", Toast.LENGTH_SHORT).show()
+                } else {
+                    infoResult?.text = result
                 }
-            } else {
-                infoResult!!.text = result
             }
         }.start()
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (resultCode == RESULT_OK) {
-            // Get the image from data
-            try {
-                if (requestCode == REQUEST_CODE_SELECT_IMAGE) {
-                    val selectedImage = data?.data
-                    val bitmap = ImageUtils.decodeUri(this, selectedImage)
-                    val rgba = bitmap!!.copy(Bitmap.Config.ARGB_8888, true)
-
-                    // resize to 400x140
-                    innerBitmap =
-                        Bitmap.createScaledBitmap(rgba, 400, 140, false)
-                    rgba.recycle()
-                    imageView!!.setImageBitmap(bitmap)
-                }
-            } catch (e: FileNotFoundException) {
-                Log.e("MainActivity", "FileNotFoundException")
-                return
-            }
-        }
-    }
-
-    companion object {
-        private const val REQUEST_CODE_SELECT_IMAGE = 1
     }
 }
