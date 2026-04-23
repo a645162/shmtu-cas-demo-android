@@ -30,6 +30,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "shmtu-cas-ocr-demo-android"
-include(":demo")
+
 include(":shmtu_ocr")
 include(":demo")

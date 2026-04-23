@@ -123,7 +123,7 @@ class ModelDownloader {
     }
 
     fun release() {
-        client.dispatcher.executorService.shutdown()
+        client.dispatcher.executorService.shutdownNow()
         client.connectionPool.evictAll()
     }
 }

@@ -93,11 +93,11 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
 
         val resultObj = shmtuNcnn.predict_validate_code(innerBitmap)
-        if (resultObj == null) {
+        if (resultObj == null || resultObj.size < 2) {
             Toast.makeText(this, "识别失败!", Toast.LENGTH_SHORT).show()
             return
         }
-        infoResult?.text = resultObj[1] as String
+        infoResult?.text = resultObj[1] as? String ?: ""
     }
 
     private fun initWidget() {
@@ -366,17 +366,16 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
             return
         }
 
-        Thread {
+        this.launch {
             val imageData = CaptchaAndroid.AndroidBitmapToByteArray(innerBitmap!!)
             val result = Captcha.ocrByRemoteTcpServerAutoRetry(ip, port.toInt(), imageData)
-
             runOnUiThread {
                 if (result.isBlank()) {
-                    Toast.makeText(this, "远程OCR失败!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@MainActivity, "远程OCR失败!", Toast.LENGTH_SHORT).show()
                 } else {
                     infoResult?.text = result
                 }
             }
-        }.start()
+        }
     }
 }

@@ -49,6 +49,6 @@ dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.constraintlayout:constraintlayout:2.2.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
-    implementation("com.squareup.okhttp3:okhttp:5.2.1")
+    implementation("com.squareup.okhttp3:okhttp:5.3.2")
     implementation(project(":shmtu_ocr"))
 }

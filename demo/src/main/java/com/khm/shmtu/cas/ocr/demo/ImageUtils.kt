@@ -15,34 +15,33 @@ import java.net.URL
 object ImageUtils {
     suspend fun downloadImageFromURL(url: String): Bitmap {
         return withContext(Dispatchers.IO) {
+            val urlConnection = URL(url).openConnection() as HttpURLConnection
             try {
-                val urlConnection = URL(url).openConnection() as HttpURLConnection
                 urlConnection.doInput = true
                 urlConnection.connect()
 
                 if (urlConnection.responseCode == HttpURLConnection.HTTP_OK) {
-                    val inputStream = urlConnection.inputStream
-                    BitmapFactory.decodeStream(inputStream)
+                    urlConnection.inputStream.use { inputStream ->
+                        BitmapFactory.decodeStream(inputStream)
+                    }
                 } else {
-                    throw Exception(
-                        "Failed to download image: "
-                                + "HTTP Response Code ${urlConnection.responseCode}"
-                    )
+                    throw Exception("Failed to download image: HTTP ${urlConnection.responseCode}")
                 }
-            } catch (e: Exception) {
-                throw e
+            } finally {
+                urlConnection.disconnect()
             }
         }
     }
 
-    fun getBitmapFromAssets(context: Context, fileName: String?): Bitmap {
-        var inputStream: InputStream? = null
-        try {
-            inputStream = context.assets.open(fileName!!)
+    fun getBitmapFromAssets(context: Context, fileName: String?): Bitmap? {
+        return try {
+            context.assets.open(fileName!!).use { inputStream ->
+                BitmapFactory.decodeStream(inputStream)
+            }
         } catch (e: IOException) {
             e.printStackTrace()
+            null
         }
-        return BitmapFactory.decodeStream(inputStream)
     }
 
     @Throws(FileNotFoundException::class)
