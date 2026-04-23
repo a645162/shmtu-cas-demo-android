@@ -24,9 +24,15 @@ namespace CAS_OCR {
             std::string precision
     );
 
-    void set_net_opt(ncnn::Net &net);
+    void set_net_opt(ncnn::Net &net, bool use_gpu);
 
-    bool init_all_model_from_assets(AAssetManager *mgr);
+    bool init_all_model_from_assets(AAssetManager *mgr, bool use_gpu);
+
+    CAS_MODEL_STATUS get_all_model_status();
+
+    void release_all_model();
+
+    bool is_vulkan_supported();
 
 }
 

@@ -62,12 +62,12 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
     ncnn::destroy_gpu_instance();
 }
 
-// public native boolean Init(AssetManager mgr);
+// public native boolean Init(AssetManager mgr, boolean use_gpu);
 JNIEXPORT jboolean JNICALL
-Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Init(JNIEnv *env, jobject thiz, jobject assetManager) {
+Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Init(JNIEnv *env, jobject thiz, jobject assetManager, jboolean use_gpu) {
     AAssetManager *mgr = AAssetManager_fromJava(env, assetManager);
 
-    const auto isSuccessful = CAS_OCR::init_all_model_from_assets(mgr);
+    const auto isSuccessful = CAS_OCR::init_all_model_from_assets(mgr, use_gpu == JNI_TRUE);
 
     if (isSuccessful) {
         return JNI_TRUE;
@@ -76,23 +76,12 @@ Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Init(JNIEnv *env, jobject thiz, jobject a
     }
 }
 
-// public native String Detect(Bitmap bitmap, boolean use_gpu);
+// public native String Detect(Bitmap bitmap);
 JNIEXPORT jobject JNICALL
 Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Detect(
         JNIEnv *env, jobject thiz,
-        jobject bitmap, jboolean use_gpu
+        jobject bitmap
 ) {
-    bool use_gpu_cpp_bool = use_gpu == JNI_TRUE;
-
-    if (use_gpu_cpp_bool && ncnn::get_gpu_count() == 0) {
-        __android_log_print(
-                ANDROID_LOG_ERROR,
-                logcat_tag.c_str(),
-                "No vulkan capable GPU!"
-        );
-        use_gpu_cpp_bool = false;
-    }
-
     AndroidBitmapInfo info;
     AndroidBitmap_getInfo(env, bitmap, &info);
 
@@ -103,8 +92,7 @@ Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Detect(
 
     const auto result =
             CAS_OCR::predict_validate_code(
-                    image_input,
-                    use_gpu_cpp_bool
+                    image_input
             );
 
     std::vector<std::string> return_tuples = {
@@ -129,6 +117,21 @@ Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Detect(
         env->DeleteLocalRef(jStr);
     }
     return stringList;
+}
+
+JNIEXPORT jint JNICALL
+Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_GetModelStatus(JNIEnv *env, jobject thiz) {
+    return static_cast<jint>(CAS_OCR::get_all_model_status());
+}
+
+JNIEXPORT void JNICALL
+Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_ReleaseModel(JNIEnv *env, jobject thiz) {
+    CAS_OCR::release_all_model();
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_IsVulkanSupported(JNIEnv *env, jobject thiz) {
+    return CAS_OCR::is_vulkan_supported() ? JNI_TRUE : JNI_FALSE;
 }
 
 }

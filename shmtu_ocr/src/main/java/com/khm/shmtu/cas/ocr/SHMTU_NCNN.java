@@ -20,30 +20,72 @@ import android.graphics.Bitmap;
 import java.util.ArrayList;
 
 public class SHMTU_NCNN {
-    private native boolean Init(AssetManager mgr);
+    private native boolean Init(AssetManager mgr, boolean use_gpu);
 
-    private native ArrayList<String> Detect(Bitmap bitmap, boolean use_gpu);
+    private native ArrayList<String> Detect(Bitmap bitmap);
+
+    private native int GetModelStatus();
+
+    private native void ReleaseModel();
+
+    private native boolean IsVulkanSupported();
 
     static {
         System.loadLibrary("shmtu_cas_ncnn");
     }
 
+    public enum ModelStatus {
+        NOT_LOADED(0),
+        LOADED_CPU(1),
+        LOADED_GPU(2);
+
+        private final int value;
+        ModelStatus(int value) {
+            this.value = value;
+        }
+        public static ModelStatus fromInt(int value) {
+            for (ModelStatus status : values()) {
+                if (status.value == value) return status;
+            }
+            return NOT_LOADED;
+        }
+    }
+
     private static boolean isInit = false;
 
-    public boolean InitModel(AssetManager mgr) {
+    public boolean InitModel(AssetManager mgr, boolean use_gpu) {
         if (!isInit) {
-            isInit = Init(mgr);
+            isInit = Init(mgr, use_gpu);
             return isInit;
         } else {
+            ModelStatus status = ModelStatus.fromInt(GetModelStatus());
+            if (status == ModelStatus.NOT_LOADED) {
+                ReleaseModel();
+                isInit = Init(mgr, use_gpu);
+                return isInit;
+            }
             return true;
         }
     }
 
-    public Object[] predict_validate_code(Bitmap bitmap, boolean use_gpu) {
+    public boolean isVulkanSupported() {
+        return IsVulkanSupported();
+    }
+
+    public ModelStatus getModelStatus() {
+        return ModelStatus.fromInt(GetModelStatus());
+    }
+
+    public void releaseModel() {
+        ReleaseModel();
+        isInit = false;
+    }
+
+    public Object[] predict_validate_code(Bitmap bitmap) {
         if (!isInit) {
             return null;
         }
-        ArrayList<String> result = Detect(bitmap, use_gpu);
+        ArrayList<String> result = Detect(bitmap);
         if (result == null || result.size() != 6) {
             return null;
         } else {

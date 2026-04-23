@@ -21,25 +21,34 @@ namespace CAS_OCR
         CAS_EXPR_EQUAL_SYMBOL_SYMBOL = 1
     };
 
+    enum CAS_MODEL_STATUS
+    {
+        CAS_MODEL_STATUS_NOT_LOADED = 0,
+        CAS_MODEL_STATUS_LOADED_CPU = 1,
+        CAS_MODEL_STATUS_LOADED_GPU = 2
+    };
+
 #ifndef __ANDROID__
     bool init_model(std::string dir_path = "", std::string type_name = "fp32");
 #endif
 
-    std::tuple<int, std::string, int, int, int, int>
-    predict_validate_code(const cv::Mat& image_input, bool use_gpu = true);
+std::tuple<int, std::string, int, int, int, int>
+    predict_validate_code(const cv::Mat& image_input);
 
 #ifndef __ANDROID__
     std::tuple<int, std::string, int, int, int, int>
-	predict_validate_code(const std::string& image_path, bool use_gpu = true);
+ 	predict_validate_code(const std::string& image_path);
 #endif
 
     void release_model();
 
     bool is_model_init();
 
-#ifdef NCNN_SUPPORT_VULKAN
+    CAS_MODEL_STATUS get_model_status();
 
-    void vulkan_is_share_memory();
+    void set_model_status(CAS_MODEL_STATUS status);
+
+#ifdef NCNN_SUPPORT_VULKAN
 
     enum VULKAN_DEVICE_TYPE
     {

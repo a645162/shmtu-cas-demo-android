@@ -73,6 +73,7 @@ namespace CAS_OCR
 {
     bool is_init = false;
     bool global_use_gpu = false;
+    CAS_MODEL_STATUS model_status = CAS_MODEL_STATUS_NOT_LOADED;
 
     ncnn::Net net_equal_symbol;
     ncnn::Net net_operator;
@@ -148,12 +149,6 @@ namespace CAS_OCR
         return ret_param == 0 && ret_model == 0;
     }
 
-    bool already_set_opt = false;
-    bool vulkan_share_memory = false;
-    bool set_opt_before_init = false;
-
-
-    // 加载模型
     bool init_model(std::string dir_path, std::string type_name)
     {
         if (is_init)
@@ -227,9 +222,8 @@ namespace CAS_OCR
 
         if (isSuccess)
         {
-            set_opt_before_init = already_set_opt;
-
             is_init = true;
+            model_status = global_use_gpu ? CAS_MODEL_STATUS_LOADED_GPU : CAS_MODEL_STATUS_LOADED_CPU;
         }
         else
         {
@@ -242,11 +236,10 @@ namespace CAS_OCR
     // 使用模型进行预测
     int predict_by_model(
             const ncnn::Net& net,
-            const cv::Mat& input_image,
-            const bool use_gpu
+            const cv::Mat& input_image
     )
     {
-        cv::Mat image = input_image.clone();
+        cv::Mat image = input_image;
 
         // 调整图像大小为模型的输入尺寸（假设为224x224）
         cv::resize(image, image, cv::Size(224, 224));
@@ -345,8 +338,7 @@ namespace CAS_OCR
     // Python Version:src/classify/predict/predict_file.py
     std::tuple<int, std::string, int, int, int, int>
     predict_validate_code(
-            const cv::Mat& image_input,
-            bool use_gpu
+            const cv::Mat& image_input
     )
     {
         cv::Mat image_gray;
@@ -363,8 +355,7 @@ namespace CAS_OCR
         const auto predicted_equal_symbol =
                 predict_by_model(
                         net_equal_symbol,
-                        image_equal_symbol,
-                        use_gpu
+                        image_equal_symbol
                 );
         // printf("predicted_equal_symbol:%d\n", predicted_equal_symbol);
 
@@ -406,23 +397,19 @@ namespace CAS_OCR
         const auto predicted_operator =
                 predict_by_model(
                         net_operator,
-                        img_operator,
-                        use_gpu
+                        img_operator
                 );
-        // printf("predicted_operator:%d\n", predicted_operator);
 
         const auto predicted_digit_1 =
                 predict_by_model(
                         net_digit,
-                        image_digit_1,
-                        use_gpu
+                        image_digit_1
                 );
 
         const auto predicted_digit_2 =
                 predict_by_model(
                         net_digit,
-                        image_digit_2,
-                        use_gpu
+                        image_digit_2
                 );
 
         const int result = calculate_operator(
@@ -452,19 +439,18 @@ namespace CAS_OCR
 
 #ifndef __ANDROID__
     std::tuple<int, std::string, int, int, int, int>
-	predict_validate_code(
-		const std::string& image_path,
-		bool use_gpu
-	)
-	{
-		const cv::Mat image = cv::imread(image_path);
-		if (image.empty())
-		{
-			std::cerr << "Failed to read image." << std::endl;
-			return std::make_tuple(0, "", 0, 0, 0, 0);
-		}
-		return predict_validate_code(image, use_gpu);
-	}
+ 	predict_validate_code(
+ 		const std::string& image_path
+ 	)
+ 	{
+ 		const cv::Mat image = cv::imread(image_path);
+ 		if (image.empty())
+ 		{
+ 			std::cerr << "Failed to read image." << std::endl;
+ 			return std::make_tuple(0, "", 0, 0, 0, 0);
+ 		}
+ 		return predict_validate_code(image);
+ 	}
 #endif
 
     void release_model()
@@ -473,6 +459,7 @@ namespace CAS_OCR
         net_operator.clear();
         net_digit.clear();
         is_init = false;
+        model_status = CAS_MODEL_STATUS_NOT_LOADED;
     }
 
     bool is_model_init()
@@ -480,12 +467,17 @@ namespace CAS_OCR
         return is_init;
     }
 
-#ifdef NCNN_SUPPORT_VULKAN
-
-    void vulkan_is_share_memory()
+    CAS_MODEL_STATUS get_model_status()
     {
-        vulkan_share_memory = true;
+        return model_status;
     }
+
+    void set_model_status(CAS_MODEL_STATUS status)
+    {
+        model_status = status;
+    }
+
+#ifdef NCNN_SUPPORT_VULKAN
 
     // Must before net.load_param
     void set_model_opt_gpu(ncnn::Net& net, const bool use_gpu)
@@ -503,19 +495,12 @@ namespace CAS_OCR
             return;
         }
 
-        already_set_opt = true;
-
         if (use_gpu && get_gpu_count() == 0)
         {
             std::cerr << "Try to use GPU, but No GPU device."
                       << std::endl;
             use_gpu = false;
         }
-
-#ifdef __ANDROID__
-        // 在 Android 平台上编译
-        vulkan_is_share_memory();
-#endif
 
         set_model_opt_gpu(net_equal_symbol, use_gpu);
         set_model_opt_gpu(net_operator, use_gpu);

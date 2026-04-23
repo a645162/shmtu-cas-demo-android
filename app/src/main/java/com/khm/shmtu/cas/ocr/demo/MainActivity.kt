@@ -1,29 +1,31 @@
 package com.khm.shmtu.cas.ocr.demo
 
-import android.R.attr.value
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.Window
+import androidx.appcompat.app.AlertDialog
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import com.khm.shmtu.cas.captcha.Captcha
 import com.khm.shmtu.cas.captcha.CaptchaAndroid
 import com.khm.shmtu.cas.ocr.SHMTU_NCNN
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import java.io.FileNotFoundException
 
 
-class MainActivity : Activity(), CoroutineScope by MainScope() {
+class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val shmtuNcnn = SHMTU_NCNN()
 
     private var imageView: ImageView? = null
@@ -36,6 +38,10 @@ class MainActivity : Activity(), CoroutineScope by MainScope() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activate_main)
 
+        supportActionBar?.apply {
+            title = "验证码识别"
+        }
+
         // 设置屏幕方向为竖屏模式
         requestedOrientation =
             ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -43,10 +49,10 @@ class MainActivity : Activity(), CoroutineScope by MainScope() {
         initWidget()
     }
 
-    private fun doOcrDemo(useGpu: Boolean) {
+    private fun doOcrDemo() {
         if (innerBitmap == null) return
         val resultObj =
-            shmtuNcnn.predict_validate_code(innerBitmap, useGpu)
+            shmtuNcnn.predict_validate_code(innerBitmap)
         if (resultObj == null) {
             Toast.makeText(
                 this@MainActivity,
@@ -60,10 +66,7 @@ class MainActivity : Activity(), CoroutineScope by MainScope() {
     }
 
     private fun initWidget() {
-        val retInit = shmtuNcnn.InitModel(assets)
-        if (!retInit) {
-            Log.e("MainActivity", "NCNN Init failed")
-        }
+        updateModelStatusText()
 
         infoResult = findViewById<View>(R.id.infoResult) as TextView
         imageView = findViewById<View>(R.id.imageView) as ImageView
@@ -108,14 +111,73 @@ class MainActivity : Activity(), CoroutineScope by MainScope() {
         }
 
         val buttonDetect = findViewById<View>(R.id.buttonDetect) as Button
-        buttonDetect.setOnClickListener { doOcrDemo(false) }
-        val buttonDetectGPU = findViewById<View>(R.id.buttonDetectGPU) as Button
-        buttonDetectGPU.setOnClickListener { doOcrDemo(true) }
+        buttonDetect.setOnClickListener { doOcrDemo() }
 
         val buttonOcrViaRemoteServer = findViewById<Button>(R.id.button_ocr_server)
         buttonOcrViaRemoteServer.setOnClickListener {
             ocrViaRemoteServer()
         }
+
+        val buttonLoadModel = findViewById<Button>(R.id.button_load_model)
+        buttonLoadModel.setOnClickListener {
+            showLoadModelDialog()
+        }
+
+        val buttonCheckStatus = findViewById<Button>(R.id.button_check_status)
+        buttonCheckStatus.setOnClickListener {
+            updateModelStatusText()
+            Toast.makeText(this, "Model Status: ${shmtuNcnn.getModelStatus()}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showLoadModelDialog() {
+        val status = shmtuNcnn.getModelStatus()
+        if (status != SHMTU_NCNN.ModelStatus.NOT_LOADED) {
+            Toast.makeText(this, "模型已加载: $status", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val options = if (shmtuNcnn.isVulkanSupported()) {
+            arrayOf("CPU", "GPU")
+        } else {
+            arrayOf("CPU (GPU不支持)")
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle("加载模型")
+            .setItems(options) { _, which ->
+                val useGpu = which == 1 && shmtuNcnn.isVulkanSupported()
+                loadModel(useGpu)
+            }
+            .setNegativeButton("取消", null)
+            .show()
+    }
+
+    private fun updateModelStatusText() {
+        val status = shmtuNcnn.getModelStatus()
+        val gpuSupport = shmtuNcnn.isVulkanSupported()
+        val gpuText = if (gpuSupport) "支持" else "不支持"
+        infoResult?.text = "状态: $status | GPU: $gpuText"
+    }
+
+    private fun loadModel(useGpu: Boolean) {
+        if (useGpu && !shmtuNcnn.isVulkanSupported()) {
+            Toast.makeText(this, "GPU不支持!", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val ret = shmtuNcnn.InitModel(assets, useGpu)
+        if (!ret) {
+            Toast.makeText(this, "模型加载失败!", Toast.LENGTH_SHORT).show()
+        } else {
+            val deviceText = if (useGpu) "GPU" else "CPU"
+            Toast.makeText(this, "模型已加载到$deviceText", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun releaseModel() {
+        shmtuNcnn.releaseModel()
+        updateModelStatusText()
+        Toast.makeText(this, "Model released", Toast.LENGTH_SHORT).show()
     }
 
     private fun ocrViaRemoteServer() {
