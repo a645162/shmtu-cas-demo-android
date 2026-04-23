@@ -8,7 +8,7 @@ println("Using JDK $jdkVersion")
 
 android {
     namespace = "com.khm.shmtu.cas.ocr"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         minSdk = 21

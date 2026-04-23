@@ -32,6 +32,8 @@ namespace CAS_OCR
     bool init_model(std::string dir_path = "", std::string type_name = "fp32");
 #endif
 
+    bool init_model_from_dir(std::string dir_path, bool use_gpu = false);
+
 std::tuple<int, std::string, int, int, int, int>
     predict_validate_code(const cv::Mat& image_input);
 

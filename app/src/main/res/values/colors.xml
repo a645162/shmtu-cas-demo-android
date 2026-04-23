@@ -8,4 +8,5 @@
     <color name="success">#4CAF50</color>
     <color name="warning">#FFC107</color>
     <color name="danger">#F44336</color>
+    <color name="info">#00BCD4</color>
 </resources>

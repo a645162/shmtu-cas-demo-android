@@ -76,6 +76,18 @@ Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Init(JNIEnv *env, jobject thiz, jobject a
     }
 }
 
+// public native boolean InitFromDir(String modelDir, boolean use_gpu);
+JNIEXPORT jboolean JNICALL
+Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_InitFromDir(JNIEnv *env, jobject thiz, jstring modelDir, jboolean use_gpu) {
+    const char *dirPath = env->GetStringUTFChars(modelDir, nullptr);
+    std::string dir_path(dirPath);
+    env->ReleaseStringUTFChars(modelDir, dirPath);
+
+    const auto isSuccessful = CAS_OCR::init_all_model_from_dir(dir_path, use_gpu == JNI_TRUE);
+
+    return isSuccessful ? JNI_TRUE : JNI_FALSE;
+}
+
 // public native String Detect(Bitmap bitmap);
 JNIEXPORT jobject JNICALL
 Java_com_khm_shmtu_cas_ocr_SHMTU_1NCNN_Detect(

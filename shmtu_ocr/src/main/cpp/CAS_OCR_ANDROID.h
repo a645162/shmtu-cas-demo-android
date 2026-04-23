@@ -28,6 +28,10 @@ namespace CAS_OCR {
 
     bool init_all_model_from_assets(AAssetManager *mgr, bool use_gpu);
 
+    bool init_all_model_from_dir(std::string dir_path, bool use_gpu);
+
+    bool init_model_from_dir(ncnn::Net &net, std::string dir_path, std::string name, std::string precision);
+
     CAS_MODEL_STATUS get_all_model_status();
 
     void release_all_model();

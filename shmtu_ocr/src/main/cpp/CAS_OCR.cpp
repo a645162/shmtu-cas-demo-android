@@ -29,6 +29,10 @@
 #include <gpu.h>
 #endif // NCNN_SUPPORT_VULKAN
 
+#ifdef __ANDROID__
+#include "CAS_OCR_ANDROID.h"
+#endif
+
 // 分割图像
 // Python Version:src/utils/pic/spilt_img.py
 static auto split_img_by_ratio(
@@ -231,6 +235,29 @@ namespace CAS_OCR
         }
 
         return is_init;
+    }
+
+    bool init_model_from_dir(std::string dir_path, bool use_gpu)
+    {
+        if (is_init)
+        {
+            release_model();
+        }
+
+        if (dir_path.empty())
+        {
+            return false;
+        }
+
+#ifdef NCNN_SUPPORT_VULKAN
+        set_model_gpu_support(use_gpu);
+#endif
+
+#ifdef __ANDROID__
+        return CAS_OCR::init_all_model_from_dir(dir_path, use_gpu);
+#else
+        return init_model(dir_path, "fp16");
+#endif
     }
 
     // 使用模型进行预测

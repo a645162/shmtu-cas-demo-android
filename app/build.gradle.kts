@@ -8,14 +8,14 @@ println("Using JDK $jdkVersion")
 
 android {
     namespace = "com.khm.shmtu.cas.ocr.demo"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.khm.shmtu.cas.ocr.demo"
         minSdk = 21
-        targetSdk = 36
-        versionCode = 115
-        versionName = "1.1.5"
+        targetSdk = 37
+        versionCode = 120
+        versionName = "1.2.0"
     }
 
     buildTypes {

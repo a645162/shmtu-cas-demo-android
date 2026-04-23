@@ -22,6 +22,8 @@ import java.util.ArrayList;
 public class SHMTU_NCNN {
     private native boolean Init(AssetManager mgr, boolean use_gpu);
 
+    private native boolean InitFromDir(String modelDir, boolean use_gpu);
+
     private native ArrayList<String> Detect(Bitmap bitmap);
 
     private native int GetModelStatus();
@@ -62,6 +64,21 @@ public class SHMTU_NCNN {
             if (status == ModelStatus.NOT_LOADED) {
                 ReleaseModel();
                 isInit = Init(mgr, use_gpu);
+                return isInit;
+            }
+            return true;
+        }
+    }
+
+    public boolean InitModelFromDir(String modelDir, boolean use_gpu) {
+        if (!isInit) {
+            isInit = InitFromDir(modelDir, use_gpu);
+            return isInit;
+        } else {
+            ModelStatus status = ModelStatus.fromInt(GetModelStatus());
+            if (status == ModelStatus.NOT_LOADED) {
+                ReleaseModel();
+                isInit = InitFromDir(modelDir, use_gpu);
                 return isInit;
             }
             return true;
