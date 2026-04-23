@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="#FAFAFA"
+    android:background="?android:attr/colorBackground"
     android:orientation="vertical">
 
     <LinearLayout
@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:text="模型控制"
             android:textSize="14sp"
-            android:textColor="#666666"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginBottom="4dp" />
 
         <LinearLayout
@@ -71,7 +71,7 @@
                 android:gravity="center_vertical"
                 android:text="未加载"
                 android:textSize="12sp"
-                android:textColor="#666666" />
+                android:textColor="?android:attr/textColorSecondary" />
         </LinearLayout>
 
         <!-- 图片获取区 -->
@@ -80,7 +80,7 @@
             android:layout_height="wrap_content"
             android:text="图片获取"
             android:textSize="14sp"
-            android:textColor="#666666"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="4dp" />
 
@@ -149,7 +149,7 @@
             android:layout_height="wrap_content"
             android:text="远程OCR"
             android:textSize="14sp"
-            android:textColor="#666666"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="4dp" />
 
@@ -165,7 +165,8 @@
                 android:layout_weight="2"
                 android:hint="Server IP"
                 android:textSize="12sp"
-                android:inputType="text" />
+                android:inputType="text"
+                android:backgroundTint="@color/primary" />
 
             <EditText
                 android:id="@+id/editText_Port"
@@ -176,7 +177,8 @@
                 android:hint="Port"
                 android:textSize="12sp"
                 android:text="21601"
-                android:inputType="number" />
+                android:inputType="number"
+                android:backgroundTint="@color/primary" />
 
             <Button
                 android:id="@+id/button_ocr_server"
@@ -194,7 +196,7 @@
             android:layout_height="wrap_content"
             android:text="图片预览"
             android:textSize="14sp"
-            android:textColor="#666666"
+            android:textColor="?android:attr/textColorSecondary"
             android:layout_marginTop="16dp"
             android:layout_marginBottom="4dp" />
 
@@ -202,7 +204,7 @@
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="180dp"
-            android:background="#E0E0E0"
+            android:background="?attr/colorSurface"
             android:padding="4dp"
             android:scaleType="fitCenter" />
 
@@ -214,7 +216,7 @@
             android:gravity="center"
             android:text="识别结果"
             android:textSize="14sp"
-            android:textColor="#666666" />
+            android:textColor="?android:attr/textColorSecondary" />
 
         <TextView
             android:id="@+id/infoResult"
@@ -224,7 +226,7 @@
             android:text=""
             android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="#333333" />
+            android:textColor="?android:attr/textColorPrimary" />
 
         <TextView
             android:layout_width="match_parent"
@@ -232,7 +234,7 @@
             android:layout_marginTop="16dp"
             android:gravity="center"
             android:text="Author: Haomin Kong"
-            android:textColor="#999999"
+            android:textColor="?android:attr/textColorTertiary"
             android:textSize="11sp" />
     </LinearLayout>
 </ScrollView>
