@@ -73,12 +73,30 @@
                 android:text="查询状态" />
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/tv_download_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="下载状态: 未开始"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary" />
+
         <ProgressBar
-            android:id="@+id/progressBar"
+            android:id="@+id/progressBarOverall"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:visibility="gone"
+            android:max="100" />
+
+        <ProgressBar
+            android:id="@+id/progressBarCurrent"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:visibility="gone"
             android:max="100" />
 

@@ -46,7 +46,7 @@ object ImageUtils {
     }
 
     @Throws(FileNotFoundException::class)
-    public fun decodeUri(context: Context, selectedImage: Uri?): Bitmap? {
+    fun decodeUri(context: Context, selectedImage: Uri?): Bitmap? {
         // Decode image size
         val o = BitmapFactory.Options()
         o.inJustDecodeBounds = true

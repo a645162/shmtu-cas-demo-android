@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -24,18 +23,20 @@ import com.khm.shmtu.cas.ocr.SHMTU_NCNN_Model
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import java.io.File
 import java.io.FileNotFoundException
 
 class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
     private val shmtuNcnn = SHMTU_NCNN()
+    private val modelDownloader = ModelDownloader()
 
     private var imageView: ImageView? = null
     private var innerBitmap: Bitmap? = null
 
     private var infoResult: TextView? = null
     private var tvModelStatus: TextView? = null
-    private var progressBar: ProgressBar? = null
+    private var tvDownloadStatus: TextView? = null
+    private var progressBarOverall: ProgressBar? = null
+    private var progressBarCurrent: ProgressBar? = null
 
     private var isDownloading = false
 
@@ -70,13 +71,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         initWidget()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        modelDownloader.release()
+    }
+
     private fun doOcrDemo() {
         if (innerBitmap == null) {
             Toast.makeText(this, "请先选择图片!", Toast.LENGTH_SHORT).show()
             return
         }
 
-        val status = shmtuNcnn.getModelStatus()
+        val status = shmtuNcnn.modelStatus
         if (status == SHMTU_NCNN.ModelStatus.NOT_LOADED) {
             AlertDialog.Builder(this)
                 .setTitle("模型未加载")
@@ -96,7 +102,9 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
     private fun initWidget() {
         tvModelStatus = findViewById<View>(R.id.tv_model_status) as TextView
-        progressBar = findViewById<View>(R.id.progressBar) as ProgressBar
+        tvDownloadStatus = findViewById<View>(R.id.tv_download_status) as TextView
+        progressBarOverall = findViewById<View>(R.id.progressBarOverall) as ProgressBar
+        progressBarCurrent = findViewById<View>(R.id.progressBarCurrent) as ProgressBar
         updateModelStatusText()
 
         infoResult = findViewById<View>(R.id.infoResult) as TextView
@@ -142,11 +150,18 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
 
         findViewById<Button>(R.id.button_check_status).setOnClickListener {
             updateModelStatusText()
-            Toast.makeText(this, "状态: ${shmtuNcnn.getModelStatus()}", Toast.LENGTH_SHORT).show()
+            val downloaded = SHMTU_NCNN_Model.isModelDownloaded(this)
+            val modelInfo = SHMTU_NCNN_Model.getDownloadedModelInfo(this)
+            val status = if (downloaded) "已下载" else "未下载"
+            AlertDialog.Builder(this)
+                .setTitle("模型状态")
+                .setMessage("本地模型: $status\n\n$modelInfo")
+                .setPositiveButton("确定", null)
+                .show()
         }
 
         findViewById<Button>(R.id.button_release_model).setOnClickListener {
-            if (shmtuNcnn.getModelStatus() == SHMTU_NCNN.ModelStatus.NOT_LOADED) {
+            if (shmtuNcnn.modelStatus == SHMTU_NCNN.ModelStatus.NOT_LOADED) {
                 Toast.makeText(this, "模型未加载!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -154,8 +169,8 @@ class MainActivity : AppCompatActivity(), CoroutineScope by MainScope() {
         }
     }
 
-private fun showLoadModelDialog() {
-        val status = shmtuNcnn.getModelStatus()
+    private fun showLoadModelDialog() {
+        val status = shmtuNcnn.modelStatus
         if (status != SHMTU_NCNN.ModelStatus.NOT_LOADED) {
             Toast.makeText(this, "模型已加载: $status", Toast.LENGTH_SHORT).show()
             return
@@ -187,7 +202,7 @@ private fun showLoadModelDialog() {
     }
 
     private fun showDeviceSelectionDialog(onSelected: (Boolean) -> Unit) {
-        if (!shmtuNcnn.isVulkanSupported()) {
+        if (!shmtuNcnn.isVulkanSupported) {
             onSelected(false)
             return
         }
@@ -219,14 +234,9 @@ private fun showLoadModelDialog() {
             .show()
     }
 
-    private fun showGpuSelectionDialog(options: Array<String>, onSelected: (Boolean) -> Unit) {
-        val useGpu = options.size > 1 && shmtuNcnn.isVulkanSupported()
-        onSelected(useGpu)
-    }
-
     private fun updateModelStatusText() {
-        val status = shmtuNcnn.getModelStatus()
-        val gpuSupport = shmtuNcnn.isVulkanSupported()
+        val status = shmtuNcnn.modelStatus
+        val gpuSupport = shmtuNcnn.isVulkanSupported
         val statusText = when (status) {
             SHMTU_NCNN.ModelStatus.NOT_LOADED -> "未加载"
             SHMTU_NCNN.ModelStatus.LOADED_CPU -> "CPU模式"
@@ -241,7 +251,7 @@ private fun showLoadModelDialog() {
             Toast.makeText(this, "内置模型不存在!", Toast.LENGTH_SHORT).show()
             return
         }
-        if (useGpu && !shmtuNcnn.isVulkanSupported()) {
+        if (useGpu && !shmtuNcnn.isVulkanSupported) {
             Toast.makeText(this, "GPU不支持!", Toast.LENGTH_SHORT).show()
             return
         }
@@ -255,7 +265,7 @@ private fun showLoadModelDialog() {
                 }
             }
 
-            override fun onError(error: String?) {
+            override fun onError(error: String) {
                 runOnUiThread {
                     Toast.makeText(this@MainActivity, "加载失败: $error", Toast.LENGTH_LONG).show()
                     updateModelStatusText()
@@ -269,7 +279,7 @@ private fun showLoadModelDialog() {
             Toast.makeText(this, "本地未下载模型，请先下载!", Toast.LENGTH_SHORT).show()
             return
         }
-        if (useGpu && !shmtuNcnn.isVulkanSupported()) {
+        if (useGpu && !shmtuNcnn.isVulkanSupported) {
             Toast.makeText(this, "GPU不支持!", Toast.LENGTH_SHORT).show()
             return
         }
@@ -283,7 +293,7 @@ private fun showLoadModelDialog() {
                 }
             }
 
-            override fun onError(error: String?) {
+            override fun onError(error: String) {
                 runOnUiThread {
                     Toast.makeText(this@MainActivity, "加载失败: $error", Toast.LENGTH_LONG).show()
                     updateModelStatusText()
@@ -296,27 +306,35 @@ private fun showLoadModelDialog() {
         val sourceName = if (source == SHMTU_NCNN_Model.ModelSource.GITEE) "Gitee" else "GitHub"
         Toast.makeText(this, "正在从${sourceName}下载模型...", Toast.LENGTH_SHORT).show()
         isDownloading = true
-        progressBar?.visibility = View.VISIBLE
+        progressBarOverall?.visibility = View.VISIBLE
+        progressBarCurrent?.visibility = View.VISIBLE
 
-        SHMTU_NCNN_Model.downloadModelAsync(this, source, true, object : SHMTU_NCNN_Model.DownloadProgressListener {
-            override fun onProgress(progress: Int) {
+        modelDownloader.download(source, this, object : ModelDownloader.DownloadProgressListener {
+            override fun onProgress(fileIndex: Int, totalFiles: Int, currentFileProgress: Int) {
                 runOnUiThread {
-                    progressBar?.progress = progress
+                    tvDownloadStatus?.text = "下载状态: 第${fileIndex}/${totalFiles}个文件"
+                    progressBarOverall?.max = totalFiles * 100
+                    progressBarOverall?.progress = (fileIndex - 1) * 100 + currentFileProgress
+                    progressBarCurrent?.progress = currentFileProgress
                 }
             }
 
-            override fun onSuccess(modelDir: File?) {
+            override fun onSuccess() {
                 runOnUiThread {
                     isDownloading = false
-                    progressBar?.visibility = View.GONE
+                    progressBarOverall?.visibility = View.GONE
+                    progressBarCurrent?.visibility = View.GONE
+                    tvDownloadStatus?.text = "下载状态: 完成"
                     Toast.makeText(this@MainActivity, "模型下载成功", Toast.LENGTH_SHORT).show()
                 }
             }
 
-            override fun onError(error: String?) {
+            override fun onError(error: String) {
                 runOnUiThread {
                     isDownloading = false
-                    progressBar?.visibility = View.GONE
+                    progressBarOverall?.visibility = View.GONE
+                    progressBarCurrent?.visibility = View.GONE
+                    tvDownloadStatus?.text = "下载状态: 失败"
                     Toast.makeText(this@MainActivity, "下载失败: $error", Toast.LENGTH_LONG).show()
                 }
             }

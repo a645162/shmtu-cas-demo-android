@@ -2,6 +2,7 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.SHMTU_CAS_OCR_DEMO" parent="Theme.Material3.DayNight">
         <item name="android:fitsSystemWindows">true</item>
+        <item name="android:windowLightStatusBar">true</item>
     </style>
 
     <style name="Theme.SHMTU_CAS_OCR_DEMO" parent="Base.Theme.SHMTU_CAS_OCR_DEMO" />
